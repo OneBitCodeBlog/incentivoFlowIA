@@ -1,16 +1,17 @@
-// IncentivoFlow/config/admin.js
-
 import AdminJS from 'adminjs';
 import AdminJSExpress from '@adminjs/express';
 import AdminJSSequelize from '@adminjs/sequelize';
 import User from '../models/user.js';
+import Campaign from '../models/campaign.js';
+import Lead from '../models/lead.js';
+import LeadCampaign from '../models/leadCampaign.js';
 import { Router } from 'express';
 
 // Registrar o adaptador do Sequelize
 AdminJS.registerAdapter(AdminJSSequelize);
 
 const adminJs = new AdminJS({
-    resources: [User],
+    resources: [User, Campaign, Lead, LeadCampaign],
     rootPath: process.env.ADMINJS_ROOT_PATH,
 });
 
