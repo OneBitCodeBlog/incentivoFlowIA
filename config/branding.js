@@ -26,7 +26,7 @@ const branding = {
           infoDark: '#0000FF',
           info: '#3333FF',
           infoLight: '#6666FF',
-          bg: '#1F1F1F', // Login page background color
+          bg: '#eee', // Login page background color
           hoverBg: '#2C2C2C', // Sidebar item hover background color
           border: '#333333', // Sidebar border color
           inputBorder: '#4D4D4D', // Input border color

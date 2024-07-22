@@ -3,6 +3,7 @@
 import express from 'express';
 import sequelize from './config/database.js';
 import adminRouter from './config/admin.js';
+import routes from './routes/index.js';  // Importe as rotas
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 
@@ -12,6 +13,7 @@ const app = express();
 
 // AdminJS router
 app.use(adminRouter);
+app.use('/api', routes);
 
 // Body parser middleware
 app.use(bodyParser.json());
@@ -21,9 +23,7 @@ app.listen(process.env.PORT, async () => {
     console.log(`Server is running on port ${process.env.PORT}`);
     try {
         await sequelize.authenticate();
-        console.log('Database connected...');
         await sequelize.sync(); // Cria as tabelas no banco de dados
-        console.log('Tables have been created');
     } catch (err) {
         console.error('Error connecting to the database:', err);
     }
