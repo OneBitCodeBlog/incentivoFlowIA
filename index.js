@@ -1,10 +1,9 @@
-// IncentivoFlow/index.js
-
 import express from 'express';
 import sequelize from './config/database.js';
 import adminRouter from './config/admin.js';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
+import apiRouter from './routes/index.js'; // Importando as rotas da API
 
 dotenv.config();
 
@@ -16,6 +15,9 @@ app.use(adminRouter);
 // Body parser middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// API routes
+app.use(apiRouter); // Adicionando as rotas da API
 
 app.listen(process.env.PORT, async () => {
     console.log(`Server is running on port ${process.env.PORT}`);
