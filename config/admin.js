@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 const componentLoader = new ComponentLoader();
 const Components = {
-  Dashboard: componentLoader.add('Dashboard', '../components/Dashboard'),
+  Dashboard: componentLoader.add('Dashboard', path.join(__dirname, '../components/Dashboard')),
 };
 
 // Registrar o adaptador do Sequelize

@@ -1,3 +1,17 @@
+import LeadCampaign from '../models/leadCampaign.js';
+
+const calculateCampaignStats = async (campaignId) => {
+  const totalLeads = await LeadCampaign.count({ where: { campaign_id: campaignId } });
+  const acceptedLeads = await LeadCampaign.count({ where: { campaign_id: campaignId, accept_invite: true } });
+  const conversionRate = totalLeads > 0 ? (acceptedLeads / totalLeads) * 100 : 0;
+
+  return {
+    totalLeads,
+    acceptedLeads,
+    conversionRate: conversionRate.toFixed(2)
+  };
+};
+
 const campaignResourceOptions = {
   properties: {
       id: {
@@ -124,7 +138,37 @@ const campaignResourceOptions = {
           position: 31,
           isVisible: false,
       },
+      totalLeads: {
+          position: 32,
+          isVisible: { list: true, filter: false, show: true, edit: false },
+          description: 'Número total de leads gerados para a campanha.',
+      },
+      acceptedLeads: {
+          position: 33,
+          isVisible: { list: true, filter: false, show: true, edit: false },
+          description: 'Número de leads que aceitaram o convite.',
+      },
+      conversionRate: {
+          position: 34,
+          isVisible: { list: true, filter: false, show: true, edit: false },
+          description: 'Taxa de conversão de leads que aceitaram o convite.',
+      },
   },
+  listProperties: ['slug', 'title', 'status', 'totalLeads', 'acceptedLeads', 'conversionRate'],
+  actions: {
+    list: {
+      after: async (response, context) => {
+        const { records } = response;
+        for (const record of records) {
+          const stats = await calculateCampaignStats(record.params.id);
+          record.params.totalLeads = stats.totalLeads;
+          record.params.acceptedLeads = stats.acceptedLeads;
+          record.params.conversionRate = stats.conversionRate;
+        }
+        return response;
+      }
+    }
+  }
 };
 
 export default campaignResourceOptions;
