@@ -4,10 +4,21 @@ import adminRouter from './config/admin.js';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import campaignRoutes from './routes/campaign.js';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
 const app = express();
+
+// Configurar o Rate Limiting
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 3, // Limite de 10 requisições por minuto por IP
+  message: 'Você excedeu o limite de requisições por minuto. Por favor, tente novamente mais tarde.'
+});
+
+// Aplicar o rate limiter a todas as rotas da API
+app.use('/api', limiter);
 
 // AdminJS router
 app.use(adminRouter);
@@ -19,8 +30,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // API routes
 app.use('/api', campaignRoutes);
 
-app.listen(process.env.PORT, async () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0';
+
+app.listen(PORT, HOST, async () => {
+    console.log(`Server is running on http://${HOST}:${PORT}`);
     try {
         await sequelize.authenticate();
         console.log('Database connected...');

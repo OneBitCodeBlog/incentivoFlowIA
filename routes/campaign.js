@@ -2,6 +2,7 @@ import express from 'express';
 import Campaign from '../models/campaign.js';
 import Lead from '../models/lead.js';
 import LeadCampaign from '../models/leadCampaign.js';
+import { sendEmail } from '../utils/email.js'; // Importar a função de envio de email
 
 const router = express.Router();
 
@@ -38,8 +39,8 @@ router.post('/campaigns/:slug/register', async (req, res) => {
       lead = await Lead.create({ name: lead_name, email: lead_email, whatsapp: lead_whatsapp });
     }
 
-    // Log para simulação de envio de email
-    console.log(`Email enviado para ${lead_email}: Bem-vindo à campanha! Você se registrou com sucesso na campanha.`);
+    // Enviar email de confirmação de registro
+    await sendEmail(lead_email, 'Bem-vindo à campanha!', `Você se registrou com sucesso na campanha "${campaign.title}".`);
 
     res.json({ success: true, message: 'Lead registrado com sucesso.', lead });
   } catch (error) {
@@ -82,14 +83,15 @@ router.post('/campaigns/:slug/invite', async (req, res) => {
       });
     }
 
-    // Log para simulação de envio de email
-    console.log(`Email enviado para ${lead_email}: Seu amigo ${inviterLead.name} te convidou para a campanha ${campaign.title}.`);
+    // Enviar email de convite
+    await sendEmail(lead_email, 'Convite para a campanha!', `Seu amigo ${inviterLead.name} te convidou para a campanha "${campaign.title}".`);
 
     res.json({ success: true, message: 'Convite enviado com sucesso.' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao enviar o convite' });
   }
 });
+
 // Aceitar Convite
 router.get('/campaigns/:slug/leads/:lead_id/accept_invite', async (req, res) => {
   const { slug, lead_id } = req.params;
@@ -114,9 +116,9 @@ router.get('/campaigns/:slug/leads/:lead_id/accept_invite', async (req, res) => 
 
     const inviterLeadCampaigns = await LeadCampaign.findAll({ where: { invited_by_lead_id: leadCampaign.invited_by_lead_id, accept_invite: true } });
     if (inviterLeadCampaigns.length >= 3) {
-      // Log para simulação de envio de email
       const inviterLead = await Lead.findByPk(leadCampaign.invited_by_lead_id);
-      console.log(`Email enviado para ${inviterLead.email}: Parabéns! Você ganhou a segunda recompensa!`);
+      // Enviar email de recompensa
+      await sendEmail(inviterLead.email, 'Parabéns!', 'Você ganhou a segunda recompensa!');
     }
 
     res.json({
