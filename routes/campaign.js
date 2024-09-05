@@ -23,116 +23,105 @@ router.get('/campaigns/:slug', async (req, res) => {
 // Registrar Lead em Campanha
 router.post('/campaigns/:slug/register', async (req, res) => {
   const { slug } = req.params;
-  const { lead_name, lead_email, lead_whatsapp } = req.body;
+  const { lead_name, lead_email, lead_whatsapp, invited_by_lead_slug } = req.body;
+  
   try {
+    // Verificar se a campanha existe
     const campaign = await Campaign.findOne({ where: { slug } });
     if (!campaign) {
       return res.status(404).json({ error: 'Campanha não encontrada' });
     }
 
+    // Validar os dados do lead
     if (!lead_email || !lead_name || !lead_whatsapp) {
-      return res.status(400).json({ error: 'Dados inválidos' });
+      return res.status(400).json({ error: 'Dados inválidos: Nome, Email e WhatsApp são obrigatórios.' });
     }
 
+    // Buscar o lead pelo email
     let lead = await Lead.findOne({ where: { email: lead_email } });
     if (!lead) {
       lead = await Lead.create({ name: lead_name, email: lead_email, whatsapp: lead_whatsapp });
     }
 
+    // Verificar se há um lead que convidou
+    let invitedByLead = null;
+    if (invited_by_lead_slug) {
+      invitedByLead = await Lead.findOne({ where: { slug: invited_by_lead_slug } });
+
+      if (!invitedByLead) {
+        console.log(`Lead convidado com slug ${invited_by_lead_slug} não encontrado.`);
+      } else {
+        console.log(`Lead convidado encontrado: ${invitedByLead.name}`);
+      }
+    }
+
+    // Criar LeadCampaign associando o lead à campanha e ao possível convidado
+    await LeadCampaign.create({
+      lead_id: lead.id,
+      campaign_id: campaign.id,
+      invited_by_lead_id: invitedByLead ? invitedByLead.id : null
+    });
+
     // Enviar email de confirmação de registro
     await sendEmail(lead_email, 'Bem-vindo à campanha!', `Você se registrou com sucesso na campanha "${campaign.title}".`);
 
     res.json({ success: true, message: 'Lead registrado com sucesso.', lead });
+
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao registrar o lead' });
+    console.error('Erro ao registrar o lead:', error);  // Log detalhado do erro
+    res.status(500).json({ error: 'Erro ao registrar o lead', details: error.message });  // Adicionando mais informações no erro
   }
 });
 
-// Enviar Convite
-router.post('/campaigns/:slug/invite', async (req, res) => {
-  const { slug } = req.params;
-  const { lead_email, lead_name, invited_by_lead_id } = req.body;
+
+// Reivindicar Recompensa
+router.get('/campaigns/:campaign_slug/leads/:lead_slug/claim_reward', async (req, res) => {
+  const { campaign_slug, lead_slug } = req.params;
   try {
-    const campaign = await Campaign.findOne({ where: { slug } });
+    // Verificar se a campanha e o lead existem
+    const campaign = await Campaign.findOne({ where: { slug: campaign_slug } });
     if (!campaign) {
       return res.status(404).json({ error: 'Campanha não encontrada' });
     }
 
-    if (!lead_email || !lead_name) {
-      return res.status(400).json({ error: 'Dados inválidos' });
-    }
-
-    const inviterLead = await Lead.findByPk(invited_by_lead_id);
-    if (!inviterLead) {
-      return res.status(400).json({ error: 'Lead que convidou não encontrado' });
-    }
-
-    let lead = await Lead.findOne({ where: { email: lead_email } });
+    const lead = await Lead.findOne({ where: { slug: lead_slug } });
     if (!lead) {
-      lead = await Lead.create({ name: lead_name, email: lead_email });
+      return res.status(404).json({ error: 'Lead não encontrado' });
     }
 
-    let leadCampaign = await LeadCampaign.findOne({ where: { lead_id: lead.id, campaign_id: campaign.id } });
+    // Atualizar o LeadCampaign para marcar que a primeira recompensa foi reclamada
+    const leadCampaign = await LeadCampaign.findOne({ where: { campaign_id: campaign.id, lead_id: lead.id } });
     if (!leadCampaign) {
-      leadCampaign = await LeadCampaign.create({
-        lead_id: lead.id,
-        campaign_id: campaign.id,
-        user_id: campaign.user_id,
-        invited_by_lead_id: inviterLead.id, // Atribuir o ID do lead que convidou
-        accept_invite: false
-      });
+      return res.status(404).json({ error: 'Relação entre campanha e lead não encontrada' });
     }
 
-    // Enviar email de convite
-    await sendEmail(lead_email, 'Convite para a campanha!', `Seu amigo ${inviterLead.name} te convidou para a campanha "${campaign.title}".`);
-
-    res.json({ success: true, message: 'Convite enviado com sucesso.' });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao enviar o convite' });
-  }
-});
-
-// Aceitar Convite
-router.get('/campaigns/:slug/leads/:lead_id/accept_invite', async (req, res) => {
-  const { slug, lead_id } = req.params;
-  try {
-    const campaign = await Campaign.findOne({ where: { slug } });
-    if (!campaign) {
-      return res.status(404).json({ error: 'Campanha não encontrada' });
-    }
-
-    const leadCampaign = await LeadCampaign.findOne({ where: { campaign_id: campaign.id, lead_id } });
-    if (!leadCampaign) {
-      return res.status(404).json({ error: 'Convite não encontrado' });
-    }
-
-    if (leadCampaign.accept_invite) {
-      return res.status(400).json({ error: 'Convite já aceito' });
-    }
-
-    leadCampaign.accept_invite = true;
-    leadCampaign.accepted_at = new Date();
+    // Marcar que o lead reclamou a primeira recompensa
+    leadCampaign.first_reward_claimed = true;
     await leadCampaign.save();
 
-    const inviterLeadCampaigns = await LeadCampaign.findAll({ where: { invited_by_lead_id: leadCampaign.invited_by_lead_id, accept_invite: true } });
-    if (inviterLeadCampaigns.length >= 3) {
+    // Verificar se o usuário que convidou atingiu o número necessário para receber a segunda recompensa
+    if (leadCampaign.invited_by_lead_id) {
+      const inviterLeadCampaigns = await LeadCampaign.count({ where: { invited_by_lead_id: leadCampaign.invited_by_lead_id, first_reward_claimed: true } });
       const inviterLead = await Lead.findByPk(leadCampaign.invited_by_lead_id);
-      // Enviar email de recompensa
-      await sendEmail(inviterLead.email, 'Parabéns!', 'Você ganhou a segunda recompensa!');
+
+      if (inviterLeadCampaigns >= campaign.required_leads_for_second_reward && !leadCampaign.second_reward_send) {
+        // Enviar a segunda recompensa para o lead que convidou
+        await sendEmail(inviterLead.email, 'Parabéns!', 'Você atingiu o número de convites necessários e recebeu a segunda recompensa!');
+
+        // Marcar que a segunda recompensa foi enviada
+        leadCampaign.second_reward_send = true;
+        await leadCampaign.save();
+      }
     }
 
+    // Redirecionar o usuário para o link da primeira recompensa
     res.json({
-      lead_id,
-      invited_by_lead_id: leadCampaign.invited_by_lead_id,
-      accept_invite: leadCampaign.accept_invite,
-      accepted_at: leadCampaign.accepted_at,
-      created_at: leadCampaign.created_at,
-      updated_at: leadCampaign.updated_at,
-      message: 'Convite aceito com sucesso.',
-      redirect_url: `/campaign/${campaign.slug}/thanks`
+      success: true,
+      message: 'Recompensa reclamada com sucesso.',
+      redirect_url: campaign.first_reward_email_link
     });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao aceitar o convite' });
+    res.status(500).json({ error: 'Erro ao processar a recompensa' });
   }
 });
 

@@ -39,9 +39,11 @@ const Lead = sequelize.define('Lead', {
     createdAt: 'created_at',
 });
 
-// Hook para gerar o slug antes de salvar
-Lead.beforeCreate((lead) => {
-    lead.slug = nanoid(8); // Gera um slug de 8 dígitos
+// Hook para gerar o slug antes da validação
+Lead.beforeValidate((lead) => {
+    if (!lead.slug) { // Garantir que o slug seja gerado apenas se estiver vazio
+        lead.slug = nanoid(8); // Gera um slug de 8 dígitos
+    }
 });
 
 export default Lead;
