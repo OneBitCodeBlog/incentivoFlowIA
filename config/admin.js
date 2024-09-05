@@ -13,6 +13,7 @@ import { Router } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { ComponentLoader } from 'adminjs';
+import { Op } from 'sequelize'; // Importar operadores do Sequelize
 
 // Resolver __dirname para módulos ES
 const __filename = fileURLToPath(import.meta.url);
@@ -29,10 +30,18 @@ AdminJS.registerAdapter(AdminJSSequelize);
 const dashboardHandler = async () => {
   const leads = await Lead.count();
   const invitedLeads = await LeadCampaign.count();
-  const acceptedLeads = await LeadCampaign.count({ where: { accept_invite: true } });
+  
+  // Contar apenas os leads que baixaram a primeira recompensa e foram convidados
+  const acceptedLeads = await LeadCampaign.count({
+    where: {
+      first_reward_claimed: true,
+      invited_by_lead_id: { [Op.ne]: null }
+    }
+  });
 
   return { leads, invitedLeads, acceptedLeads };
 };
+
 
 const adminJs = new AdminJS({
   resources: [

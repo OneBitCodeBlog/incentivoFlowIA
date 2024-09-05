@@ -63,7 +63,7 @@ const Dashboard = () => {
         <Box width={[1, 1 / 2, 1 / 2, 1 / 3]} p="lg">
           <Card>
             <Text textAlign="center">
-              <H5>Leads que Aceitaram Convite</H5>
+              <H5>Convidados que baixaram recompensa</H5>
               <H2>{data.acceptedLeads}</H2>
             </Text>
           </Card>
