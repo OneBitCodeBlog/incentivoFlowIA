@@ -97,6 +97,11 @@ const Campaign = sequelize.define('Campaign', {
     invite_email_reward: {
         type: DataTypes.TEXT,
     },
+    required_leads_for_second_reward: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 3, // Número padrão de leads necessários para a segunda recompensa
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

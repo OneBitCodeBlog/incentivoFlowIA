@@ -2,41 +2,33 @@ const leadCampaignResourceOptions = {
     properties: {
         id: {
             position: 1,
-            isVisible: false,
-        },
-        user_id: {
-            position: 2,
-            description: 'Identificador do usuário criador da campanha.',
+            isVisible: true, // Torna visível para ajudar na ordenação
         },
         campaign_id: {
-            position: 3,
+            position: 2,
             description: 'Identificador da campanha.',
         },
         lead_id: {
-            position: 4,
+            position: 3,
             description: 'Identificador do lead.',
         },
         invited_by_lead_id: {
-            position: 5,
+            position: 4,
             description: 'Identificador do lead que convidou este lead.',
         },
-        accept_invite: {
+        first_reward_claimed: {
+            position: 5,
+            description: 'Indica se a primeira recompensa foi reclamada.',
+        },
+        second_reward_claimed: {
             position: 6,
-            description: 'Indicador se o lead aceitou o convite.',
+            description: 'Indica se a segunda recompensa foi reclamada.',
         },
-        accepted_at: {
+        second_reward_send: {
             position: 7,
-            description: 'Data em que o lead aceitou o convite.',
-        },
-        created_at: {
-            position: 8,
-            isVisible: false,
-        },
-        updated_at: {
-            position: 9,
-            isVisible: false,
+            description: 'Indica se a segunda recompensa foi enviada.',
         },
     },
-  };
-  
-  export default leadCampaignResourceOptions;
+};
+
+export default leadCampaignResourceOptions;

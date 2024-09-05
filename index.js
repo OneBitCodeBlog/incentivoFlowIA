@@ -38,7 +38,7 @@ app.listen(PORT, HOST, async () => {
     try {
         await sequelize.authenticate();
         console.log('Database connected...');
-        await sequelize.sync(); // Cria as tabelas no banco de dados
+        await sequelize.sync({ alter: true }); // O "alter: true" ajusta o banco de dados para refletir mudanças nos modelos
         console.log('Tables have been created');
     } catch (err) {
         console.error('Error connecting to the database:', err);

@@ -7,10 +7,6 @@ const LeadCampaign = sequelize.define('LeadCampaign', {
         autoIncrement: true,
         primaryKey: true,
     },
-    user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
     campaign_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -21,13 +17,19 @@ const LeadCampaign = sequelize.define('LeadCampaign', {
     },
     invited_by_lead_id: {
         type: DataTypes.INTEGER,
+        allowNull: true, // Permite valores nulos
     },
-    accept_invite: {
+    first_reward_claimed: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
     },
-    accepted_at: {
-        type: DataTypes.DATE,
+    second_reward_claimed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    second_reward_send: { // Nome do campo corrigido
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
     },
     created_at: {
         type: DataTypes.DATE,
@@ -42,5 +44,10 @@ const LeadCampaign = sequelize.define('LeadCampaign', {
     updatedAt: 'updated_at',
     createdAt: 'created_at',
 });
+
+// Associações
+LeadCampaign.belongsTo(sequelize.models.Lead, { foreignKey: 'lead_id', as: 'lead' });
+LeadCampaign.belongsTo(sequelize.models.Lead, { foreignKey: 'invited_by_lead_id', as: 'invitedByLead' });
+LeadCampaign.belongsTo(sequelize.models.Campaign, { foreignKey: 'campaign_id', as: 'campaign' });
 
 export default LeadCampaign;

@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
+import { nanoid } from 'nanoid'; // Biblioteca para gerar o slug aleatório
 
 const Lead = sequelize.define('Lead', {
     id: {
@@ -19,6 +20,11 @@ const Lead = sequelize.define('Lead', {
     whatsapp: {
         type: DataTypes.STRING(20),
     },
+    slug: {
+        type: DataTypes.STRING(8),
+        allowNull: false,
+        unique: true,
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -31,6 +37,11 @@ const Lead = sequelize.define('Lead', {
     timestamps: true,
     updatedAt: 'updated_at',
     createdAt: 'created_at',
+});
+
+// Hook para gerar o slug antes de salvar
+Lead.beforeCreate((lead) => {
+    lead.slug = nanoid(8); // Gera um slug de 8 dígitos
 });
 
 export default Lead;
