@@ -3,7 +3,8 @@ import Campaign from '../models/campaign.js';
 import Lead from '../models/lead.js';
 import LeadCampaign from '../models/leadCampaign.js';
 import { sendEmail } from '../utils/email.js'; // Importar a função de envio de email
-import { sendRewardEmail } from '../utils/emailTemplates.js';
+import { sendRewardEmail, sendSecondRewardEmail } from '../utils/emailTemplates.js';
+
 
 const router = express.Router();
 
@@ -103,27 +104,78 @@ router.get('/campaigns/:campaign_slug/leads/:lead_slug/claim_reward', async (req
 
     // Verificar se o usuário que convidou atingiu o número necessário para receber a segunda recompensa
     if (leadCampaign.invited_by_lead_id) {
-      const inviterLeadCampaigns = await LeadCampaign.count({ where: { invited_by_lead_id: leadCampaign.invited_by_lead_id, first_reward_claimed: true } });
+      // Contar quantos leads convidados pelo usuário que convidou já reclamaram a primeira recompensa
+      const inviterLeadCampaignsCount = await LeadCampaign.count({
+        where: {
+          invited_by_lead_id: leadCampaign.invited_by_lead_id,
+          first_reward_claimed: true,
+        },
+      });
+
+      // Buscar o lead que convidou
       const inviterLead = await Lead.findByPk(leadCampaign.invited_by_lead_id);
 
-      if (inviterLeadCampaigns >= campaign.required_leads_for_second_reward && !leadCampaign.second_reward_send) {
-        // Enviar a segunda recompensa para o lead que convidou
-        await sendEmail(inviterLead.email, 'Parabéns!', 'Você atingiu o número de convites necessários e recebeu a segunda recompensa!');
+      // Verificar se o número de convites aceitos atingiu o necessário para a segunda recompensa e se a segunda recompensa já foi enviada
+      if (inviterLeadCampaignsCount >= campaign.required_leads_for_second_reward) {
+        // Buscar o registro de LeadCampaign do usuário que convidou
+        const inviterLeadCampaign = await LeadCampaign.findOne({
+          where: {
+            lead_id: inviterLead.id,
+            campaign_id: campaign.id,
+          },
+        });
 
-        // Marcar que a segunda recompensa foi enviada
-        leadCampaign.second_reward_send = true;
-        await leadCampaign.save();
+        if (!inviterLeadCampaign.second_reward_send) {
+          const inviterLeadSlug = inviterLead.slug; // Slug do lead que convidou
+          const baseUrl = process.env.BASE_URL || 'http://localhost:3000'; // Certifique-se de que o baseUrl está definido
+        
+          // Enviar a segunda recompensa para o lead que convidou
+          await sendSecondRewardEmail(inviterLead.email, inviterLead.name, campaign, inviterLeadSlug, baseUrl);
+        
+          // Marcar que a segunda recompensa foi enviada para o lead que convidou
+          inviterLeadCampaign.second_reward_send = true;
+          await inviterLeadCampaign.save();
+        }
       }
     }
 
-    // Redirecionar o usuário para o link da primeira recompensa
-    res.json({
-      success: true,
-      message: 'Recompensa reclamada com sucesso.',
-      redirect_url: campaign.first_reward_email_link
-    });
+    // Redirecionar o usuário diretamente para o link da primeira recompensa
+    res.redirect(campaign.first_reward_email_link);
   } catch (error) {
+    console.error('Erro ao processar a recompensa:', error);
     res.status(500).json({ error: 'Erro ao processar a recompensa' });
+  }
+});
+
+
+router.get('/campaigns/:campaign_slug/leads/:lead_slug/claim_second_reward', async (req, res) => {
+  const { campaign_slug, lead_slug } = req.params;
+  try {
+    // Verificar se a campanha e o lead existem
+    const campaign = await Campaign.findOne({ where: { slug: campaign_slug } });
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campanha não encontrada' });
+    }
+
+    const lead = await Lead.findOne({ where: { slug: lead_slug } });
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead não encontrado' });
+    }
+
+    // Atualizar o LeadCampaign para marcar que a segunda recompensa foi reclamada
+    const leadCampaign = await LeadCampaign.findOne({ where: { campaign_id: campaign.id, lead_id: lead.id } });
+    if (!leadCampaign) {
+      return res.status(404).json({ error: 'Relação entre campanha e lead não encontrada' });
+    }
+
+    // Marcar que o lead reclamou a segunda recompensa
+    leadCampaign.second_reward_claimed = true;
+    await leadCampaign.save();
+
+    // Redirecionar o usuário diretamente para o link da segunda recompensa
+    res.redirect(campaign.second_reward_email_link);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao processar a segunda recompensa' });
   }
 });
 

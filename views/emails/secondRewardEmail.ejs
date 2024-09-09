@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sua recompensa chegou!</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2>Olá <%= name %>,</h2>
+
+    <p>Parabéns por convidar seus amigos e ajudar nossa campanha "<%= campaign_title %>" a crescer!</p>
+
+    <h3>Recompensa: <%= second_reward_title %></h3>
+    <p><%= second_reward_text %></p>
+
+    <p>Clique no link abaixo para resgatar sua recompensa:</p>
+
+    <p><a href="<%= claim_second_reward_url %>" style="background-color: #F64348; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Resgatar Recompensa</a></p>
+
+    <p>Estamos ansiosos para ver você aproveitar essa recompensa!</p>
+
+    <p>Atenciosamente,<br>Equipe da Campanha</p>
+</body>
+</html>
