@@ -23,7 +23,7 @@ app.use(express.static('public'));
 // Configurar o Rate Limiting
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minuto
-  max: 3, // Limite de 10 requisições por minuto por IP
+  max: 30, // Limite de 10 requisições por minuto por IP
   message: 'Você excedeu o limite de requisições por minuto. Por favor, tente novamente mais tarde.'
 });
 
