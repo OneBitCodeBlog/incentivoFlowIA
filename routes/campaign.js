@@ -3,6 +3,7 @@ import Campaign from '../models/campaign.js';
 import Lead from '../models/lead.js';
 import LeadCampaign from '../models/leadCampaign.js';
 import { sendEmail } from '../utils/email.js'; // Importar a função de envio de email
+import { sendRewardEmail } from '../utils/emailTemplates.js';
 
 const router = express.Router();
 
@@ -62,14 +63,15 @@ router.post('/campaigns/:slug/register', async (req, res) => {
       invited_by_lead_id: invitedByLead ? invitedByLead.id : null
     });
 
-    // Enviar email de confirmação de registro
-    await sendEmail(lead_email, 'Bem-vindo à campanha!', `Você se registrou com sucesso na campanha "${campaign.title}".`);
+    // Enviar email de confirmação de registro usando template
+    const base_url = process.env.BASE_URL;
+    await sendRewardEmail(lead_email, lead_name, campaign, lead.slug, base_url);
 
     res.json({ success: true, message: 'Lead registrado com sucesso.', lead });
 
   } catch (error) {
-    console.error('Erro ao registrar o lead:', error);  // Log detalhado do erro
-    res.status(500).json({ error: 'Erro ao registrar o lead', details: error.message });  // Adicionando mais informações no erro
+    console.error('Erro ao registrar o lead:', error);  
+    res.status(500).json({ error: 'Erro ao registrar o lead', details: error.message }); 
   }
 });
 

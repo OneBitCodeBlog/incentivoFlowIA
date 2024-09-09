@@ -1,1 +1,39 @@
-invite :)
+<div class="text-center my-5">
+  <h1 id="main_title" class="invite-title">Sua recompensa foi enviada por email 🎉</h1>
+</div>
+
+<!-- Seção de vídeo e texto da recompensa -->
+<div class="d-flex justify-content-center align-items-start reward-section">
+  <div class="video-placeholder">
+    <iframe id="second_reward_video" frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div class="ms-5">
+    <h4 id="second_reward_title" class="invite-subtitle"></h4>
+    <p id="second_reward_text" style="font-size: 18px;">Se você enviar a recompensa anterior para amigos e eles aceitarem, você libera "<span id="second_reward_title"></span>"</p>
+  </div>
+</div>
+
+<!-- Seção de compartilhamento e link -->
+<div class="mt-5 text-center">
+  <h4>Convidar e liberar recompensa especial</h4>
+  <label for="user_invite_link" class="form-label">Envie seu link único:</label>
+  <div class="input-group mb-3 share-section">
+    <input type="text" class="form-control" id="user_invite_link" readonly>
+    <button class="btn btn-secondary" onclick="copyInviteLink()">Copiar</button>
+  </div>
+  
+  <div class="d-flex justify-content-center social-links">
+    <p>Ou envie em:</p>
+    <a href="#" id="share_twitter" target="_blank"><i class="fab fa-twitter"></i></a>
+    <a href="#" id="share_linkedin" target="_blank"><i class="fab fa-linkedin"></i></a>
+    <a href="#" id="share_instagram" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="#" id="share_facebook" target="_blank"><i class="fab fa-facebook"></i></a>
+  </div>
+</div>
+
+<!-- Seção de confirmação da recompensa -->
+<div class="mt-5 text-center">
+  <p>Assim que pelo menos <span id="required_friends"></span> amigos se inscreverem para receber a recompensa "<span id="first_reward_title"></span>", você vai receber sua recompensa por email ❤️</p>
+</div>
+
+<script src="/js/invite.js"></script>

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { convert } from 'html-to-text'; // Importar a função de conversão
 
 // Configurar o transporte de email
 const transporter = nodemailer.createTransport({
@@ -11,13 +12,15 @@ const transporter = nodemailer.createTransport({
 });
 
 // Função para enviar email
-export const sendEmail = async (to, subject, text, html) => {
+export const sendEmail = async (to, subject, html) => {
+  const text = convert(html); // Converter HTML para texto simples
+  
   const mailOptions = {
     from: process.env.EMAIL_FROM || 'no-reply@incentivoflow.com',
     to,
     subject,
-    text,
-    html,
+    text, // Fallback de texto simples
+    html, // Conteúdo HTML
   };
 
   try {

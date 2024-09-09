@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sua recompensa chegou!</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2>Olá <%= lead_name %>,</h2>
+
+    <p>Parabéns por se inscrever na campanha "<%= campaign_title %>". Estamos felizes em te oferecer a seguinte recompensa:</p>
+
+    <h3>Recompensa: <%= campaign_first_reward %></h3>
+    <p>Clique no link abaixo para resgatar sua recompensa:</p>
+    <p><a href="<%= claim_reward_url %>" style="background-color: #F64348; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Resgatar Recompensa</a></p>
+
+    <p>Convide seus amigos para participar também! Você pode ganhar uma segunda recompensa ao indicar <%= required_leads_for_second_reward %> amigos que resgatem suas recompensas. Use o link abaixo para convidar seus amigos:</p>
+    <p><a href="<%= invite_url %>"><%= invite_url %></a></p>
+
+    <p>Estamos ansiosos para ver você aproveitar suas recompensas. Boa sorte!</p>
+
+    <p>Atenciosamente,<br>Equipe IncentivoFlow</p>
+</body>
+</html>
